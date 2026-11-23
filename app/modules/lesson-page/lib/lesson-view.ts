@@ -5,7 +5,6 @@ import { flattenCourseLessons } from "./course";
 import {
   calculateWatchProgress,
   getLastWatchPosition,
-  getLessonProgress,
   getLessonProgressForCourse,
   markLessonInProgress,
 } from "./progress";
@@ -63,9 +62,7 @@ export function openLesson(
   let watchProgress = 0;
   const lessonProgressMap: Record<number, LessonProgressStatus> = {};
 
-  markLessonInProgress(db, userId, lessonId);
-  const progress = getLessonProgress(db, userId, lessonId);
-  const lessonStatus = progress?.status ?? null;
+  const lessonStatus = markLessonInProgress(db, userId, lessonId).status;
 
   for (const record of getLessonProgressForCourse(db, userId, courseId)) {
     lessonProgressMap[record.lessonId] = record.status;

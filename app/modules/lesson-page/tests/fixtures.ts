@@ -90,6 +90,34 @@ export function addQuiz(db: TestDb, lessonId: number) {
   return { quiz, first, second };
 }
 
+/** A question with only wrong options (or none), so nothing is correct. */
+export function addQuestionWithNoRightOption(
+  db: TestDb,
+  quizId: number,
+  { position, wrongOptions }: { position: number; wrongOptions: number }
+) {
+  const question = db
+    .insert(schema.quizQuestions)
+    .values({
+      quizId,
+      questionText: `Q${position}`,
+      questionType: QuestionType.MultipleChoice,
+      position,
+    })
+    .returning()
+    .get();
+  for (let i = 0; i < wrongOptions; i++) {
+    db.insert(schema.quizOptions)
+      .values({
+        questionId: question.id,
+        optionText: "wrong",
+        isCorrect: false,
+      })
+      .run();
+  }
+  return question;
+}
+
 /** A quiz of `count` multiple-choice questions, each with one right option. */
 export function addLongQuiz(db: TestDb, lessonId: number, count: number) {
   const quiz = db

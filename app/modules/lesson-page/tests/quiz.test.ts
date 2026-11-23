@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { addLesson, addModule, addQuiz, setUp } from "./fixtures";
+import {
+  addLesson,
+  addModule,
+  addQuestionWithNoRightOption,
+  addQuiz,
+  setUp,
+} from "./fixtures";
 
 let t: ReturnType<typeof setUp>;
 let lessonId: number;
@@ -142,6 +148,43 @@ describe("submitQuiz", () => {
     const two = submit({});
     expect(one?.attemptId).toBeGreaterThan(0);
     expect(two?.attemptId).toBe((one?.attemptId ?? 0) + 1);
+  });
+
+  it("scores an answer to a question with no right option as wrong", () => {
+    const bare = addQuestionWithNoRightOption(t.db, q.quiz.id, {
+      position: 3,
+      wrongOptions: 0,
+    });
+    const allWrong = addQuestionWithNoRightOption(t.db, q.quiz.id, {
+      position: 4,
+      wrongOptions: 1,
+    });
+    const { quiz } = t.lessonPage.quiz(lessonId, t.user.id);
+    expect(quiz?.questions[2]).toMatchObject({
+      id: bare.id,
+      questionText: "Q3",
+      options: [],
+    });
+    expect(quiz?.questions[3].options).toMatchObject([{ optionText: "wrong" }]);
+
+    const result = submit({
+      [bare.id]: q.first.right,
+      [allWrong.id]: q.first.right,
+    });
+    expect(result?.questionResults.slice(2)).toEqual([
+      {
+        questionId: bare.id,
+        correct: false,
+        selectedOptionId: q.first.right,
+        correctOptionId: null,
+      },
+      {
+        questionId: allWrong.id,
+        correct: false,
+        selectedOptionId: q.first.right,
+        correctOptionId: null,
+      },
+    ]);
   });
 
   it("records no attempt when an answer cannot be stored", () => {

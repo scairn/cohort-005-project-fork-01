@@ -41,8 +41,6 @@ type QuizOption = typeof quizOptions.$inferSelect;
 /** Every option of the given questions in one query, grouped by question. */
 function optionsByQuestion(db: Db, questions: { id: number }[]) {
   const grouped = new Map<number, QuizOption[]>();
-  if (questions.length === 0) return grouped;
-
   const options = db
     .select()
     .from(quizOptions)
@@ -93,7 +91,7 @@ type QuestionResult = {
 
 function scoreQuestion(
   questionId: number,
-  options: QuizOption[],
+  options: QuizOption[] | undefined,
   selected: number | undefined
 ): QuestionResult {
   if (!selected) {
@@ -104,7 +102,7 @@ function scoreQuestion(
       correctOptionId: null,
     };
   }
-  const correctOptionId = options.find((o) => o.isCorrect)?.id ?? null;
+  const correctOptionId = options?.find((o) => o.isCorrect)?.id ?? null;
   return {
     questionId,
     correct: selected === correctOptionId,
@@ -153,7 +151,7 @@ export function computeResult(
   const options = optionsByQuestion(db, questions);
 
   const questionResults = questions.map((q) =>
-    scoreQuestion(q.id, options.get(q.id) ?? [], selectedAnswers[q.id])
+    scoreQuestion(q.id, options.get(q.id), selectedAnswers[q.id])
   );
   const correct = questionResults.filter((r) => r.correct).length;
   const total = questions.length;
