@@ -5,7 +5,11 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Textarea } from "~/components/ui/textarea";
 import { cn, formatRelativeTime } from "~/lib/utils";
-import { describeNoteDraft, type NoteDraftState } from "~/modules/note-draft";
+import {
+  describeNoteDraft,
+  type NoteDraft,
+  type NoteDraftState,
+} from "~/modules/note-draft";
 
 // Laid out like CommentThread (same card, header and form footer) so the two
 // writing surfaces on the Lesson page read as one design.
@@ -52,7 +56,7 @@ export function LessonNote({
               <NoteStatus state={draft.state} updatedAt={note?.updatedAt} />
             )}
 
-            <CharacterCount length={draft.length} max={draft.max} />
+            <CharacterCount draft={draft} />
           </div>
         </fetcher.Form>
       </CardContent>
@@ -105,15 +109,15 @@ function NoteStatus({
   return null;
 }
 
-function CharacterCount({ length, max }: { length: number; max: number }) {
+function CharacterCount({ draft }: { draft: NoteDraft }) {
   return (
     <span
       className={cn(
         "ml-auto text-xs",
-        length > max ? "text-destructive" : "text-muted-foreground"
+        draft.tooLong ? "text-destructive" : "text-muted-foreground"
       )}
     >
-      {length} / {max}
+      {draft.length} / {draft.max}
     </span>
   );
 }
