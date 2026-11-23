@@ -71,7 +71,6 @@ export function openLesson(
     lessonProgressMap[record.lessonId] = record.status;
   }
 
-  // Video watch state, for resume and the progress display
   if (lesson.videoUrl) {
     lastWatchPosition = getLastWatchPosition(db, userId, lessonId);
     const videoDurationSeconds = (lesson.durationMinutes ?? 0) * 60;

@@ -4,7 +4,7 @@ import {
   getCourseWithDetails,
   getLessonById,
   getModuleById,
-  getUserById,
+  getPersonById,
 } from "./lib/course";
 import { markLessonComplete } from "./lib/progress";
 import {
@@ -33,7 +33,7 @@ export function createLessonPage(database: Db) {
     course: (courseId: number) => getCourseWithDetails(database, courseId),
     lesson: (lessonId: number) => getLessonById(database, lessonId),
     module: (moduleId: number) => getModuleById(database, moduleId),
-    user: (userId: number) => getUserById(database, userId),
+    person: (personId: number) => getPersonById(database, personId),
     neighbours,
     /** Records the visit and returns the Student's progress. */
     openLesson: (userId: number, opened: Parameters<typeof openLesson>[2]) =>

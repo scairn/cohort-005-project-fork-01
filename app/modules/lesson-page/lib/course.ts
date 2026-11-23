@@ -68,7 +68,7 @@ export function getModuleById(db: Db, id: number) {
   return db.select().from(modules).where(eq(modules.id, id)).get();
 }
 
-export function getUserById(db: Db, id: number) {
+export function getPersonById(db: Db, id: number) {
   return db.select().from(users).where(eq(users.id, id)).get();
 }
 

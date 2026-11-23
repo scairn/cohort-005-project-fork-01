@@ -68,7 +68,6 @@ function nest<
     byId.get(row.parentId)?.replies.push(toThreadComment(row));
   }
 
-  // A deleted question with no replies left has nothing worth showing.
   return topLevel;
 }
 
@@ -116,6 +115,7 @@ export function getLessonThread(db: Db, lessonId: number): ThreadComment[] {
 
   const topLevel = nest(rows, toThreadComment);
 
+  // A deleted question with no replies left has nothing worth showing.
   return topLevel.filter((c) => !c.deleted || c.replies.length > 0);
 }
 

@@ -51,7 +51,7 @@ describe("course", () => {
     const lesson = addLesson(t.db, mod.id, { position: 1 });
     expect(t.lessonPage.lesson(lesson.id)?.title).toBe(lesson.title);
     expect(t.lessonPage.module(mod.id)?.title).toBe("Module 1");
-    expect(t.lessonPage.user(t.instructor.id)?.name).toBe("Test Instructor");
+    expect(t.lessonPage.person(t.instructor.id)?.name).toBe("Test Instructor");
   });
 });
 

@@ -187,7 +187,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
   // Everything from here on is behind the can-view-content bar above:
   // comments, Bookmarks and Notes are confidential to the course.
-  const instructor = lessonPage.user(course.instructorId);
+  const instructor = lessonPage.person(course.instructorId);
   const comments = await lessonPage.discussion(lessonId);
 
   const bookmarked = currentUserId
