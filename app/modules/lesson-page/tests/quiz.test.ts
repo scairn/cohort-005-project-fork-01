@@ -144,6 +144,11 @@ describe("submitQuiz", () => {
     expect(two?.attemptId).toBe((one?.attemptId ?? 0) + 1);
   });
 
+  it("records no attempt when an answer cannot be stored", () => {
+    expect(() => submit({ [q.first.id]: 999_999 })).toThrow();
+    expect(t.lessonPage.quiz(lessonId, t.user.id).bestAttempt).toBeNull();
+  });
+
   it("returns null for an unknown quiz", () => {
     expect(
       t.lessonPage.submitQuiz({ userId: t.user.id, quizId: 999 }, {})
