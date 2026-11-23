@@ -37,7 +37,7 @@ export function LessonNote({
             value={body}
             onChange={(event) => setBody(event.target.value)}
             placeholder="Write a note for this lesson..."
-            aria-label="Your notes"
+            aria-labelledby="lesson-note-heading"
             className="resize-y"
           />
 
@@ -50,11 +50,13 @@ export function LessonNote({
               {isSaving ? "Saving..." : "Save note"}
             </Button>
 
-            {error ? (
-              <span className="text-sm text-destructive">{error}</span>
-            ) : (
-              <NoteStatus state={draft.state} updatedAt={note?.updatedAt} />
-            )}
+            <span aria-live="polite">
+              {error ? (
+                <span className="text-sm text-destructive">{error}</span>
+              ) : (
+                <NoteStatus state={draft.state} updatedAt={note?.updatedAt} />
+              )}
+            </span>
 
             <CharacterCount draft={draft} />
           </div>
@@ -69,7 +71,9 @@ function LessonNoteHeader() {
     <>
       <div className="mb-1 flex items-center gap-2">
         <NotebookPen className="size-5 text-primary" />
-        <h2 className="text-xl font-semibold">Your notes</h2>
+        <h2 id="lesson-note-heading" className="text-xl font-semibold">
+          Your notes
+        </h2>
         <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
           <Lock className="size-3" />
           Private
