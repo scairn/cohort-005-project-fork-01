@@ -89,8 +89,10 @@ function LessonBody({ data }: { data: FullLessonData }) {
         />
       )}
 
-      {/* Note — under the video, so the Student can write while they watch */}
-      {currentUserId && <LessonNote note={data.note} />}
+      {/* Note — under the video, so the Student can write while they watch.
+          Keyed by Lesson: the route reuses this component between Lessons, and
+          the draft would otherwise carry over and save onto the next one. */}
+      {currentUserId && <LessonNote key={lesson.id} note={data.note} />}
 
       {contentHtml && (
         <div
