@@ -21,7 +21,7 @@ export function CurriculumSidebar({
   course: { id: number; title: string; slug: string };
   curriculum: CurriculumModule[];
   currentLessonId: number;
-  lessonProgressMap: Record<number, string>;
+  lessonProgressMap: Record<number, LessonProgressStatus>;
   enrolled: boolean;
 }) {
   const [expandedModules, toggleModule] = useExpandedModules(
@@ -132,7 +132,7 @@ function ModuleLessons({
   courseSlug: string;
   lessons: CurriculumModule["lessons"];
   currentLessonId: number;
-  lessonProgressMap: Record<number, string>;
+  lessonProgressMap: Record<number, LessonProgressStatus>;
 }) {
   return (
     <ul className="ml-4 space-y-0.5 py-1">
@@ -156,7 +156,11 @@ function ModuleLessons({
   );
 }
 
-function LessonStatusIcon({ status }: { status: string | undefined }) {
+function LessonStatusIcon({
+  status,
+}: {
+  status: LessonProgressStatus | undefined;
+}) {
   if (status === LessonProgressStatus.Completed) {
     return <CheckCircle2 className="size-3.5 shrink-0 text-green-500" />;
   }

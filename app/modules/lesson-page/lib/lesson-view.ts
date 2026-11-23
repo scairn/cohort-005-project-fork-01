@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { quizzes } from "~/db/schema";
+import { type LessonProgressStatus, quizzes } from "~/db/schema";
 import type { Db } from "./db";
 import { flattenCourseLessons } from "./course";
 import {
@@ -35,10 +35,10 @@ type OpenedLesson = {
 };
 
 export type LessonProgressView = {
-  lessonStatus: string | null;
+  lessonStatus: LessonProgressStatus | null;
   lastWatchPosition: number;
   watchProgress: number;
-  lessonProgressMap: Record<number, string>;
+  lessonProgressMap: Record<number, LessonProgressStatus>;
 };
 
 /** What the page shows for someone whose progress is not recorded. */
@@ -61,11 +61,11 @@ export function openLesson(
   const lessonId = lesson.id;
   let lastWatchPosition = 0;
   let watchProgress = 0;
-  const lessonProgressMap: Record<number, string> = {};
+  const lessonProgressMap: Record<number, LessonProgressStatus> = {};
 
   markLessonInProgress(db, userId, lessonId);
   const progress = getLessonProgress(db, userId, lessonId);
-  const lessonStatus: string | null = progress?.status ?? null;
+  const lessonStatus = progress?.status ?? null;
 
   for (const record of getLessonProgressForCourse(db, userId, courseId)) {
     lessonProgressMap[record.lessonId] = record.status;
