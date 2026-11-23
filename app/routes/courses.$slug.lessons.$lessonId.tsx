@@ -32,7 +32,7 @@ import { renderMarkdown } from "~/lib/markdown.server";
 import { data, isRouteErrorResponse } from "react-router";
 import { z } from "zod";
 
-import { parseFormData } from "~/lib/validation";
+import { parseFormData, parseParams } from "~/lib/validation";
 
 const createCommentSchema = z.object({
   intent: z.literal("create-comment"),
@@ -61,6 +61,41 @@ const deleteCommentSchema = z.object({
   intent: z.literal("delete-comment"),
   commentId: z.coerce.number().int(),
 });
+
+const lessonParamsSchema = z.object({
+  lessonId: z.coerce.number().int().positive(),
+});
+
+const submitQuizSchema = z.object({
+  quizId: z.coerce.number().int().positive(),
+});
+
+const QUESTION_FIELD_PREFIX = "question-";
+
+const quizAnswerSchema = z.object({
+  questionId: z.coerce.number().int().positive(),
+  optionId: z.coerce.number().int().positive(),
+});
+
+/**
+ * The Student's answers, from fields named "question-{questionId}" whose
+ * value is the chosen option's id. A malformed field is skipped, as if the
+ * question were left unanswered.
+ */
+function selectedAnswersFrom(formData: FormData): Record<number, number> {
+  const answers: Record<number, number> = {};
+  for (const [key, value] of formData.entries()) {
+    if (!key.startsWith(QUESTION_FIELD_PREFIX)) continue;
+    const parsed = quizAnswerSchema.safeParse({
+      questionId: key.slice(QUESTION_FIELD_PREFIX.length),
+      optionId: value,
+    });
+    if (parsed.success) {
+      answers[parsed.data.questionId] = parsed.data.optionId;
+    }
+  }
+  return answers;
+}
 
 /**
  * The course named by this route's slug, through this lesson. A lesson in
@@ -104,7 +139,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
   const { course, person, enrolled, view, take, manage } = decisions;
   const currentUserId = person?.id ?? null;
-  const lessonId = Number(params.lessonId);
+  const { lessonId } = parseParams(params, lessonParamsSchema);
 
   const courseWithDetails = lessonPage.course(course.id);
   const lesson = lessonPage.lesson(lessonId);
@@ -160,7 +195,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     : false;
   const note = currentUserId ? getNote(db, currentUserId, lessonId) : undefined;
 
-  // Render lesson content from Markdown to HTML server-side
   const contentHtml = lesson.content
     ? await renderMarkdown(lesson.content)
     : null;
@@ -222,7 +256,7 @@ export async function action({ params, request }: Route.ActionArgs) {
     ref
   );
   const currentUserId = person.id;
-  const lessonId = Number(params.lessonId);
+  const { lessonId } = parseParams(params, lessonParamsSchema);
 
   if (
     intent === "create-comment" ||
@@ -334,10 +368,11 @@ export async function action({ params, request }: Route.ActionArgs) {
   }
 
   if (intent === "submit-quiz") {
-    const quizId = Number(formData.get("quizId"));
-    if (isNaN(quizId)) {
+    const parsedQuiz = parseFormData(formData, submitQuizSchema);
+    if (!parsedQuiz.success) {
       throw data("Invalid quiz ID", { status: 400 });
     }
+    const { quizId } = parsedQuiz.data;
     // Scope the quiz to this lesson so a quiz elsewhere can't be reached by
     // posting its id to this route.
     const quiz = lessonPage.quizById(quizId);
@@ -345,21 +380,9 @@ export async function action({ params, request }: Route.ActionArgs) {
       throw data("Quiz not found", { status: 404 });
     }
 
-    // Collect answers: form fields named "question-{questionId}" with value = optionId
-    const selectedAnswers: Record<number, number> = {};
-    for (const [key, value] of formData.entries()) {
-      if (key.startsWith("question-")) {
-        const questionId = Number(key.replace("question-", ""));
-        const optionId = Number(value);
-        if (!isNaN(questionId) && !isNaN(optionId)) {
-          selectedAnswers[questionId] = optionId;
-        }
-      }
-    }
-
     const result = lessonPage.submitQuiz(
       { userId: currentUserId, quizId },
-      selectedAnswers
+      selectedAnswersFrom(formData)
     );
     if (!result) {
       throw data("Failed to score quiz", { status: 500 });
