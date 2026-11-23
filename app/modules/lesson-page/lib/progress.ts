@@ -54,7 +54,11 @@ export function getLessonProgressForCourse(
     .all();
 }
 
-export function markLessonComplete(db: Db, userId: number, lessonId: number) {
+export function markLessonComplete(
+  db: Db,
+  { userId, lessonId }: { userId: number; lessonId: number },
+  now: Date
+) {
   const existing = getLessonProgress(db, userId, lessonId);
 
   if (existing) {
@@ -62,7 +66,7 @@ export function markLessonComplete(db: Db, userId: number, lessonId: number) {
       .update(lessonProgress)
       .set({
         status: LessonProgressStatus.Completed,
-        completedAt: new Date().toISOString(),
+        completedAt: now.toISOString(),
       })
       .where(eq(lessonProgress.id, existing.id))
       .returning()
@@ -75,7 +79,7 @@ export function markLessonComplete(db: Db, userId: number, lessonId: number) {
       userId,
       lessonId,
       status: LessonProgressStatus.Completed,
-      completedAt: new Date().toISOString(),
+      completedAt: now.toISOString(),
     })
     .returning()
     .get();

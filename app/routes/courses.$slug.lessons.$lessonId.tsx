@@ -329,7 +329,7 @@ export async function action({ params, request }: Route.ActionArgs) {
   }
 
   if (intent === "mark-complete") {
-    lessonPage.completeLesson(currentUserId, lessonId);
+    lessonPage.completeLesson(currentUserId, lessonId, new Date());
     return { success: true };
   }
 

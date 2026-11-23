@@ -38,8 +38,8 @@ export function createLessonPage(database: Db) {
     /** Records the visit and returns the Student's progress. */
     openLesson: (userId: number, opened: Parameters<typeof openLesson>[2]) =>
       openLesson(database, userId, opened),
-    completeLesson: (userId: number, lessonId: number) =>
-      markLessonComplete(database, userId, lessonId),
+    completeLesson: (userId: number, lessonId: number, now: Date) =>
+      markLessonComplete(database, { userId, lessonId }, now),
     /** The Lesson's comments, nested and rendered to sanitised HTML. */
     discussion: (lessonId: number) =>
       renderThread(getLessonThread(database, lessonId)),

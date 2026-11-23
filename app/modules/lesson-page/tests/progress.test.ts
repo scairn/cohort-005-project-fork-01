@@ -12,6 +12,7 @@ import {
 let t: ReturnType<typeof setUp>;
 let lesson: ReturnType<typeof addLesson>;
 let other: ReturnType<typeof addLesson>;
+const NOW = new Date("2026-03-01T12:00:00.000Z");
 
 beforeEach(() => {
   t = setUp();
@@ -37,12 +38,12 @@ describe("openLesson", () => {
   });
 
   it("does not move a completed lesson back to in progress", () => {
-    t.lessonPage.completeLesson(t.user.id, lesson.id);
+    t.lessonPage.completeLesson(t.user.id, lesson.id, NOW);
     expect(open().lessonStatus).toBe(LessonProgressStatus.Completed);
   });
 
   it("maps progress across every lesson in the course", () => {
-    t.lessonPage.completeLesson(t.user.id, other.id);
+    t.lessonPage.completeLesson(t.user.id, other.id, NOW);
     expect(open().lessonProgressMap).toEqual({
       [lesson.id]: LessonProgressStatus.InProgress,
       [other.id]: LessonProgressStatus.Completed,
@@ -50,7 +51,7 @@ describe("openLesson", () => {
   });
 
   it("keeps each person's progress separate", () => {
-    t.lessonPage.completeLesson(t.instructor.id, other.id);
+    t.lessonPage.completeLesson(t.instructor.id, other.id, NOW);
     expect(open().lessonProgressMap).toEqual({
       [lesson.id]: LessonProgressStatus.InProgress,
     });
@@ -61,7 +62,7 @@ describe("openLesson", () => {
     const elsewhere = addLesson(t.db, addModule(t.db, other.id, 1).id, {
       position: 1,
     });
-    t.lessonPage.completeLesson(t.user.id, elsewhere.id);
+    t.lessonPage.completeLesson(t.user.id, elsewhere.id, NOW);
     expect(open().lessonProgressMap).toEqual({
       [lesson.id]: LessonProgressStatus.InProgress,
     });
@@ -143,14 +144,15 @@ describe("openLesson", () => {
 
 describe("completeLesson", () => {
   it("completes a lesson never opened, with a completion time", () => {
-    const row = t.lessonPage.completeLesson(t.user.id, lesson.id);
+    const row = t.lessonPage.completeLesson(t.user.id, lesson.id, NOW);
     expect(row.status).toBe(LessonProgressStatus.Completed);
-    expect(row.completedAt).not.toBeNull();
+    expect(row.completedAt).toBe(NOW.toISOString());
   });
 
   it("completes a lesson in progress without adding a row", () => {
     open();
-    t.lessonPage.completeLesson(t.user.id, lesson.id);
+    const row = t.lessonPage.completeLesson(t.user.id, lesson.id, NOW);
+    expect(row.completedAt).toBe(NOW.toISOString());
     const progress = open();
     expect(progress.lessonStatus).toBe(LessonProgressStatus.Completed);
     expect(progress.lessonProgressMap).toEqual({
