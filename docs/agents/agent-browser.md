@@ -7,6 +7,9 @@ built for exactly this — one command per action, an answer on stdout.
 
 ## Once, per machine
 
+The implement and review workflows install it before the agent starts.
+Anywhere else:
+
 ```bash
 npm install -g agent-browser
 agent-browser install
@@ -14,9 +17,37 @@ agent-browser install
 
 ## Asking your own question
 
-Start the app with `npm run dev` first. The examples below use
-`http://localhost:5173`, the dev server's default address — if `npm run dev`
-printed a different one, use that.
+Start the app with `npm run dev` first, and wait for it to answer rather than
+sleeping a fixed time:
+
+```bash
+(npm run dev > /tmp/dev.log 2>&1 &)
+until curl -sf -o /dev/null http://localhost:5173; do sleep 1; done
+```
+
+The examples below use `http://localhost:5173`, the dev server's default
+address. If `npm run dev` printed a different one, use that.
+
+## Signing in
+
+Sign in by posting to `/api/switch-user` from the page. The session cookie
+sticks for every command after it:
+
+```bash
+agent-browser open http://localhost:5173/
+agent-browser eval 'fetch("/api/switch-user", {method: "POST", body: new URLSearchParams({userId: "5"}), redirect: "manual"}).then(r => r.status)'
+```
+
+Seeded people, fresh from `npm run db:seed`:
+
+| id  | Person           | Role       | Notes                                           |
+| --- | ---------------- | ---------- | ----------------------------------------------- |
+| 1   | Alex Rivera      | admin      |                                                 |
+| 2   | Sarah Chen       | instructor | teaches `introduction-to-typescript`            |
+| 5   | Emma Wilson      | student    | enrolled in `introduction-to-typescript`        |
+| 10  | Bossy McBossface | student    | not enrolled in it: sees the locked lesson view |
+
+`/api/set-dev-country` sets the country the same way.
 
 A screenshot is pixels. To verify a fix you need a yes or a no, so read the
 DOM:
@@ -52,7 +83,17 @@ change you are reporting on trust.
 Screenshots are PR evidence: a before and an after for a change that shows in
 the UI.
 
-## Two things that will bite you
+## Three things that will bite you
+
+**The page scrolls inside `<main>`, not the window.** The app layout
+(`app/routes/layout.app.tsx`) is a full-height flex box with
+`main.overflow-y-auto`, so `window.scrollTo` does nothing. Scroll the element
+you want into view before a screenshot:
+
+```bash
+agent-browser eval '[...document.querySelectorAll("h2")].find(h => h.textContent.includes("Your notes")).scrollIntoView({block: "start"})'
+agent-browser screenshot /tmp/evidence/after.png
+```
 
 **Hydration lags "networkidle".** The button is in the server HTML before
 React attaches its `onClick`, so the first click can be a silent no-op. Poll

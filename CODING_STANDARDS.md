@@ -18,7 +18,8 @@ Form data, search parameters and request bodies get a zod schema before the
 values reach any query. Parse once, at the boundary; after that the value has
 a type and you do not check it again. Coerce numbers through the schema, not
 `Number()`: `Number("")` is `0`, and an empty `lessonId` once opened lesson 0
-for every learner.
+for every learner. `npm run lint:oxlint` catches `Number()` on `params`, form
+data and search params, except in the files on its exemption list.
 
 ## Check permission in the action, not only the loader
 
@@ -42,9 +43,24 @@ Test setup calls the module's own functions. When the function you need does
 not exist, add it to the module rather than inserting rows directly, so a
 change to how the module stores its data leaves its tests alone.
 
+When no module owns the writes yet (the curriculum and quiz tables are written
+only from instructor routes), insert the rows in one `fixtures.ts` in the
+module's `tests/` folder, with a comment at the top naming the module that
+should own them. That keeps the debt in one place, ready to move.
+
 ## Keep files under 5000 tokens
 
-Keep every file under 5000 tokens.
+Keep every file under 5000 tokens. The pre-commit hook rejects a commit that
+touches a file over the limit, including one that was already over it. The
+split that follows is in scope for any ticket. Review it for one thing: that
+no behaviour changed. It is not scope creep.
+
+## Moved code keeps its old violations
+
+Code moved without a change in behaviour keeps any violation it already had on
+main. Leave each one as a finding marked _follow-up_, for its own ticket. A
+follow-up does not count towards CHANGES REQUESTED. Fixing it in the same pull
+request widens a change nobody asked for.
 
 ## Wrap related writes in a transaction
 
@@ -57,6 +73,8 @@ ended, and the learner kept the course.)
 
 One query per item is N+1 queries. Use a join, or one query with an `IN`. The
 notes loader ran one query per lesson, forty lessons per course.
+`npm run lint:oxlint` catches a select inside a loop or an array callback,
+except in the files on its exemption list.
 
 ## Paginate anything that can grow
 
@@ -76,11 +94,18 @@ A status string that the code compares against is an enum in `app/db/schema.ts`,
 not a literal repeated in six places. Refund status was `"pending"` in four
 files and `"Pending"` in one.
 
+## Read a configured value from the row that stores it
+
+When a row stores a setting, the code reads it from the row. The quiz pass mark
+was hard-coded at `> 0.7` while each quiz stores its own `passingScore`, and
+the Student is shown that one.
+
 ## Inject the clock
 
 A function that calls `Date.now()` cannot be tested at a fixed moment. Take
 the time as an argument. The refund window tests failed every night at
-midnight until we did this.
+midnight until we did this. `npm run lint:oxlint` enforces this in
+`app/modules/`; apply it elsewhere by hand.
 
 ## Keep secrets on the server
 
@@ -106,6 +131,19 @@ const [count, setCount] = useState(rows.length);
 const [items, setItems] = useState(rows);
 const count = items.length;
 ```
+
+## Key local state by the route's parameter
+
+React Router reuses a route's components when only its parameter changes. A
+component that holds local state on such a route takes the parameter as its
+`key`, or the state follows the person to the next page. A draft note once
+carried over from lesson 18 to lesson 19, and Save wrote it onto lesson 19.
+
+## Announce async status
+
+Status that changes after an action, such as "Saved" or an error, sits in a
+live region (`role="status"` or `aria-live="polite"`) so a screen reader
+announces it.
 
 ## A comment explains why
 
