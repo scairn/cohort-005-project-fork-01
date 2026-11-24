@@ -11,6 +11,11 @@ Or run the first three with `npm run check`.
 
 `npm run lint:oxlint` lints the whole repository with oxlint (`.oxlintrc.json`).
 
+The pre-commit hook rejects any file you touch that is over 5000 tokens, even
+one that was already over. `npm run check` does not run this test. Run
+`node scripts/check-file-tokens.js <file>` before you edit a large file: if it
+fails, splitting the file is part of your ticket.
+
 Modules are deep modules: see [app/modules/README.md](./app/modules/README.md) before adding or importing one.
 
 ### About agent-browser
