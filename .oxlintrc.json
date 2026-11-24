@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["typescript", "react", "jsx-a11y", "import", "vitest"],
-  "jsPlugins": ["./lint-rules/sql-raw.js"],
+  "jsPlugins": ["./lint-rules/sql-raw.js", "./lint-rules/standards.js"],
   "categories": {
     "correctness": "error"
   },
@@ -86,9 +86,17 @@
     "import/no-default-export": "error",
     "vitest/no-disabled-tests": "error",
     "vitest/no-focused-tests": "error",
-    "sql/no-dynamic-raw": "error"
+    "sql/no-dynamic-raw": "error",
+    "standards/parse-with-schema": "error",
+    "standards/no-query-in-loop": "error"
   },
   "overrides": [
+    {
+      "files": ["app/modules/*/index*.ts", "app/modules/*/lib/**"],
+      "rules": {
+        "standards/inject-clock": "error"
+      }
+    },
     {
       "files": [
         "app/routes/**",
@@ -129,7 +137,6 @@
         "app/modules/instructor-analytics/lib/instructor-analytics.ts",
         "app/modules/instructor-analytics/tests/instructor-analytics.test.ts",
         "app/routes/admin.categories.tsx",
-        "app/routes/courses.$slug.lessons.$lessonId.tsx",
         "app/routes/courses.$slug.purchase.tsx",
         "app/routes/courses.$slug.tsx",
         "app/routes/courses.tsx",
@@ -238,6 +245,31 @@
       ],
       "rules": {
         "max-depth": "off"
+      }
+    },
+    // Files that broke a standard before its rule existed. Remove each entry
+    // once the file is fixed.
+    {
+      "files": [
+        "app/routes/courses.$slug.$moduleId.tsx",
+        "app/routes/instructor.$courseId.lessons.$lessonId.quiz.tsx",
+        "app/routes/instructor.$courseId.lessons.$lessonId.tsx",
+        "app/routes/instructor.$courseId.modules.$moduleId.tsx"
+      ],
+      "rules": {
+        "standards/parse-with-schema": "off"
+      }
+    },
+    {
+      "files": [
+        "app/lib/refunds.server.ts",
+        "app/routes/courses.$slug.tsx",
+        "app/routes/dashboard.tsx",
+        "app/routes/instructor.$courseId.lessons.$lessonId.quiz.tsx",
+        "app/routes/instructor.$courseId.students.tsx"
+      ],
+      "rules": {
+        "standards/no-query-in-loop": "off"
       }
     }
   ]
