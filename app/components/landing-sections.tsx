@@ -154,15 +154,7 @@ function Spotlight({ course }: { course: FeaturedCourse }) {
             {course.description}
           </p>
           <div className="mt-5 flex items-center justify-between text-sm text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <User className="size-4" />
-              {course.instructorName}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <BookOpen className="size-4" />
-              {course.lessonCount}{" "}
-              {plural(course.lessonCount, "lesson", "lessons")}
-            </span>
+            <CourseByline course={course} iconClassName="size-4" />
           </div>
         </div>
       </Link>
@@ -262,18 +254,31 @@ function CourseCard({ course }: { course: FeaturedCourse }) {
           </p>
         </CardContent>
         <CardFooter className="flex items-center justify-between text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <User className="size-3" />
-            {course.instructorName}
-          </span>
-          <span className="flex items-center gap-1">
-            <BookOpen className="size-3" />
-            {course.lessonCount}{" "}
-            {plural(course.lessonCount, "lesson", "lessons")}
-          </span>
+          <CourseByline course={course} iconClassName="size-3" />
         </CardFooter>
       </Card>
     </Link>
+  );
+}
+
+function CourseByline({
+  course,
+  iconClassName,
+}: {
+  course: FeaturedCourse;
+  iconClassName: string;
+}) {
+  return (
+    <>
+      <span className="flex items-center gap-1.5">
+        <User className={iconClassName} />
+        {course.instructorName}
+      </span>
+      <span className="flex items-center gap-1.5">
+        <BookOpen className={iconClassName} />
+        {course.lessonCount} {plural(course.lessonCount, "lesson", "lessons")}
+      </span>
+    </>
   );
 }
 
