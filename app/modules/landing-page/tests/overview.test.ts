@@ -84,13 +84,13 @@ describe("featured courses", () => {
     empty.db.delete(courses).run();
     expect(empty.landingPage.overview()).toEqual({
       featuredCourses: [],
-      stats: { courses: 0, lessons: 0, instructors: 0, categories: 0 },
+      stats: { courses: 0, lessons: 0, instructors: 0 },
     });
   });
 });
 
 describe("catalogue stats", () => {
-  it("count published courses, their lessons, instructors and categories", () => {
+  it("count published courses, their lessons and instructors", () => {
     const second = addCourse(t.db, {
       instructorId: addInstructor(t.db, "Second Instructor").id,
       categoryId: addCategory(t.db, "Design").id,
@@ -110,7 +110,6 @@ describe("catalogue stats", () => {
       courses: 4,
       lessons: 6,
       instructors: 3,
-      categories: 3,
     });
   });
 
@@ -132,7 +131,6 @@ describe("catalogue stats", () => {
       courses: 1,
       lessons: 1,
       instructors: 1,
-      categories: 1,
     });
   });
 });
