@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { courses, CourseStatus } from "~/db/schema";
-import { FEATURED_COURSE_COUNT } from "../index.server";
 import {
   addCategory,
   addCourse,
@@ -25,32 +24,41 @@ function course(createdAt: string, status?: CourseStatus) {
   });
 }
 
+// Every course the page shows, spotlight first.
+function shown() {
+  const { spotlight, newCourses } = t.landingPage.overview();
+  return [spotlight, ...newCourses].flatMap((c) => (c ? [c.id] : []));
+}
+
 describe("featured courses", () => {
-  it("are the newest published courses, newest first", () => {
+  it("spotlight the newest published course and list the next three", () => {
     const oldest = course("2100-01-01T00:00:00.000Z");
-    const newest = course("2100-04-01T00:00:00.000Z");
-    const middle = course("2100-03-01T00:00:00.000Z");
-    const third = course("2100-02-01T00:00:00.000Z");
+    const newest = course("2100-05-01T00:00:00.000Z");
+    const second = course("2100-04-01T00:00:00.000Z");
+    const fourth = course("2100-02-01T00:00:00.000Z");
+    const third = course("2100-03-01T00:00:00.000Z");
 
-    const ids = t.landingPage.overview().featuredCourses.map((c) => c.id);
+    const { spotlight, newCourses } = t.landingPage.overview();
 
-    expect(FEATURED_COURSE_COUNT).toBe(3);
-    expect(ids).toEqual([newest.id, middle.id, third.id]);
-    expect(ids).not.toContain(oldest.id);
+    expect(spotlight?.id).toBe(newest.id);
+    expect(newCourses.map((c) => c.id)).toEqual([
+      second.id,
+      third.id,
+      fourth.id,
+    ]);
+    expect(shown()).not.toContain(oldest.id);
   });
 
   it("break a tie on creation time by the later id", () => {
     const first = course("2101-01-01T00:00:00.000Z");
     const second = course("2101-01-01T00:00:00.000Z");
-    const ids = t.landingPage.overview().featuredCourses.map((c) => c.id);
-    expect(ids.slice(0, 2)).toEqual([second.id, first.id]);
+    expect(shown().slice(0, 2)).toEqual([second.id, first.id]);
   });
 
   it("leave out drafts and archived courses", () => {
     course("2101-01-01T00:00:00.000Z", CourseStatus.Draft);
     course("2101-02-01T00:00:00.000Z", CourseStatus.Archived);
-    const ids = t.landingPage.overview().featuredCourses.map((c) => c.id);
-    expect(ids).toEqual([t.course.id]);
+    expect(shown()).toEqual([t.course.id]);
   });
 
   it("carry the instructor, category and the course's own lesson count", () => {
@@ -59,9 +67,9 @@ describe("featured courses", () => {
     addLessons(t.db, other.id, 1);
     addLessons(t.db, t.course.id, 4);
 
-    const [first, second] = t.landingPage.overview().featuredCourses;
+    const { spotlight, newCourses } = t.landingPage.overview();
 
-    expect(first).toEqual({
+    expect(spotlight).toEqual({
       id: other.id,
       title: other.title,
       slug: other.slug,
@@ -71,19 +79,19 @@ describe("featured courses", () => {
       categoryName: "Programming",
       lessonCount: 3,
     });
-    expect(second.lessonCount).toBe(4);
+    expect(newCourses[0].lessonCount).toBe(4);
   });
 
   it("count no lessons for a course without any", () => {
-    const [only] = t.landingPage.overview().featuredCourses;
-    expect(only.lessonCount).toBe(0);
+    expect(t.landingPage.overview().spotlight?.lessonCount).toBe(0);
   });
 
   it("are empty when nothing is published", () => {
     const empty = setUp();
     empty.db.delete(courses).run();
     expect(empty.landingPage.overview()).toEqual({
-      featuredCourses: [],
+      spotlight: null,
+      newCourses: [],
       stats: { courses: 0, lessons: 0, instructors: 0 },
     });
   });

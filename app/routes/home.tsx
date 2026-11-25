@@ -37,7 +37,7 @@ export function meta() {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const { featuredCourses, stats } = landingPage.overview();
+  const { spotlight, newCourses, stats } = landingPage.overview();
   const users = getAllUsers();
   const currentUserId = await getCurrentUserId(request);
   const currentUser = currentUserId ? getUserById(currentUserId) : null;
@@ -45,7 +45,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   const countryTierInfo = getCountryTierInfo(devCountry);
 
   return {
-    featuredCourses,
+    spotlight,
+    newCourses,
     stats,
     users: users.map((u) => ({ id: u.id, name: u.name, role: u.role })),
     currentUser: currentUser
@@ -59,7 +60,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function Home({ loaderData }: Route.ComponentProps) {
   const {
-    featuredCourses,
+    spotlight,
+    newCourses,
     stats,
     users,
     currentUser,
@@ -131,13 +133,11 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       <main>
         <LandingHero
           stats={stats}
-          spotlight={featuredCourses[0]}
+          spotlight={spotlight}
           signedIn={currentUser !== null}
         />
         <LandingFeatures />
-        {featuredCourses.length > 0 && (
-          <FeaturedCourses courses={featuredCourses} />
-        )}
+        {newCourses.length > 0 && <FeaturedCourses courses={newCourses} />}
       </main>
 
       <LandingFooter signedIn={currentUser !== null} />

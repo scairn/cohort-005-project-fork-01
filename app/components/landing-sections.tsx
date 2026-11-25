@@ -30,7 +30,7 @@ export function LandingHero({
   signedIn,
 }: {
   stats: CatalogueStats;
-  spotlight: FeaturedCourse | undefined;
+  spotlight: FeaturedCourse | null;
   signedIn: boolean;
 }) {
   return (

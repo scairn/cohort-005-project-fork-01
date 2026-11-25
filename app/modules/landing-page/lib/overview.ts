@@ -9,7 +9,8 @@ import {
 } from "~/db/schema";
 import type { Db } from "./db";
 
-export const FEATURED_COURSE_COUNT = 3;
+// One for the hero spotlight, three for the "New courses" grid.
+const NEWEST_COURSE_COUNT = 4;
 
 export type FeaturedCourse = {
   id: number;
@@ -29,7 +30,10 @@ export type CatalogueStats = {
 };
 
 export type LandingOverview = {
-  featuredCourses: FeaturedCourse[];
+  /** The newest published course, or null when nothing is published. */
+  spotlight: FeaturedCourse | null;
+  /** The next newest, so the spotlight course is not shown twice. */
+  newCourses: FeaturedCourse[];
   stats: CatalogueStats;
 };
 
@@ -51,7 +55,7 @@ function newestPublishedCourses(database: Db) {
     .innerJoin(categories, eq(courses.categoryId, categories.id))
     .where(published)
     .orderBy(desc(courses.createdAt), desc(courses.id))
-    .limit(FEATURED_COURSE_COUNT)
+    .limit(NEWEST_COURSE_COUNT)
     .all();
 }
 
@@ -87,7 +91,8 @@ function catalogueStats(database: Db): CatalogueStats {
 }
 
 /**
- * What the landing page shows: the newest published courses, and the size of
+ * What the landing page shows: the newest published course in the
+ * spotlight, the next newest beneath it, and the size of
  * the published catalogue. Drafts and archived courses count for nothing.
  */
 export function getLandingOverview(database: Db): LandingOverview {
@@ -96,11 +101,13 @@ export function getLandingOverview(database: Db): LandingOverview {
     database,
     newest.map((course) => course.id)
   );
+  const [spotlight = null, ...newCourses] = newest.map((course) => ({
+    ...course,
+    lessonCount: lessonCounts.get(course.id) ?? 0,
+  }));
   return {
-    featuredCourses: newest.map((course) => ({
-      ...course,
-      lessonCount: lessonCounts.get(course.id) ?? 0,
-    })),
+    spotlight,
+    newCourses,
     stats: catalogueStats(database),
   };
 }

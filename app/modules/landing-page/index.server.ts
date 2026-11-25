@@ -2,7 +2,6 @@ import { db } from "~/db";
 import type { Db } from "./lib/db";
 import { getLandingOverview } from "./lib/overview";
 
-export { FEATURED_COURSE_COUNT } from "./lib/overview";
 export type {
   CatalogueStats,
   FeaturedCourse,
