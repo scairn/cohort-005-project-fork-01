@@ -15,6 +15,7 @@ import {
   CardHeader,
 } from "~/components/ui/card";
 import { CourseImage } from "~/components/course-image";
+import { cn } from "~/lib/utils";
 import type {
   CatalogueStats,
   FeaturedCourse,
@@ -39,11 +40,17 @@ export function LandingHero({
         aria-hidden
         className="pointer-events-none absolute -top-40 right-[-10%] size-[36rem] rounded-full bg-indigo-500/10 blur-3xl dark:bg-indigo-400/10"
       />
-      <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-6 py-20 lg:grid-cols-[1.15fr_1fr] lg:py-28">
+      <div
+        className={cn(
+          "relative mx-auto grid max-w-6xl items-center gap-14 px-6 py-20 lg:py-28",
+          spotlight && "lg:grid-cols-[1.15fr_1fr]"
+        )}
+      >
         <div>
           <HeroCopy />
           <HeroActions signedIn={signedIn} />
-          <HeroFigures stats={stats} />
+          {/* Zeros in large type read as an unfinished site, not a figure. */}
+          {stats.courses > 0 && <HeroFigures stats={stats} />}
         </div>
         {spotlight && <Spotlight course={spotlight} />}
       </div>
@@ -122,7 +129,7 @@ function HeroFigures({ stats }: { stats: CatalogueStats }) {
 
 function Spotlight({ course }: { course: FeaturedCourse }) {
   return (
-    <div className="relative mx-auto w-full max-w-md lg:mx-0 lg:justify-self-end">
+    <div className="relative w-full max-w-md lg:justify-self-end">
       <div
         aria-hidden
         className="absolute inset-0 translate-x-4 translate-y-4 rotate-2 rounded-2xl bg-indigo-500/15 dark:bg-indigo-400/15"
